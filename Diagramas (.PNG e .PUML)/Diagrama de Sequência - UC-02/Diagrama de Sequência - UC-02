@@ -1,0 +1,68 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+skinparam shadowing false
+skinparam participant {
+    BorderColor #333
+    BackgroundColor #EEE
+    ActorBorderColor #333
+}
+skinparam database {
+    BorderColor #333
+    BackgroundColor #EEE
+}
+skinparam queue {
+    BorderColor #333
+    BackgroundColor #F8F8F8
+}
+
+title "Diagrama de Sequencia - Seguir Usuario (FollowsUseCase)"
+
+actor "Usuario" as user
+participant "Frontend (Next.js)" as fe
+participant "API Gateway (Go)" as gw
+participant "Backend Principal (Go)" as be
+database "Banco de Dados (PostgreSQL)" as db
+queue "Fila (RabbitMQ)" as mq
+participant "Servico de Notificacoes (Go)" as notif
+
+group Fluxo Sincrono (Requisicao do Usuario)
+    user -> fe: clicaEmSeguir(userIdAlvo)
+    activate fe
+
+    fe -> gw: POST /graphql (mutation: followUser)
+    activate gw
+
+    gw -> be: executa FollowsUseCase(userIdAlvo, userIdAtual)
+    activate be
+
+    be -> db: Verifica/Insere/Deleta em "follows"\n(id_follower, id_followed)
+    activate db
+    db --> be: (Sucesso na transacao)
+    deactivate db
+
+    be --> gw: (Sucesso, 200)
+    deactivate be
+
+    gw --> fe: (Sucesso, 200)
+    deactivate gw
+
+    fe --> user: (Atualiza UI - Botao "Seguindo")
+    deactivate fe
+end
+
+group Fluxo Assincrono (Notificacao)
+    be -> mq: publicaEvento("user_followed_event", {followerId, followedId})
+
+    mq -> notif: consomeEvento("user_followed_event")
+    activate notif
+
+    notif -> db: Insere em "notifications" (userId=followedId, message=...)
+    activate db
+    db --> notif: (Sucesso)
+    deactivate db
+    
+    deactivate notif
+end
+
+@enduml

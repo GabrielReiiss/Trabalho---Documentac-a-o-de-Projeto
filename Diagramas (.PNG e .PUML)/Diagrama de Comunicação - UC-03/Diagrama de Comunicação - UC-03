@@ -1,0 +1,19 @@
+@startuml
+title Diagrama de Comunicação - Buscar por Usuário (SearchUseCase)
+
+actor Usuário
+participant "Frontend (Next.js)" as FE
+participant "API Gateway (Go)" as GW
+participant "Backend Principal (Go)" as BE
+database "Banco de Dados (PostgreSQL)" as DB
+
+Usuário -> FE : 1: digitaTermoBusca("artista")
+FE -> GW : 2: POST /graphql (query: search, term: "artista")
+GW -> BE : 3: executa SearchUseCase("artista")
+BE -> DB : 4: SELECT * FROM "users" WHERE user_name LIKE ...
+DB -> BE : 5: (Retorna listaDeUsuarios)
+BE -> GW : 6: (Sucesso, 200, listaDeUsuarios)
+GW -> FE : 7: (Sucesso, 200, listaDeUsuarios)
+FE -> Usuário : 8: (Exibe lista de resultados)
+
+@enduml

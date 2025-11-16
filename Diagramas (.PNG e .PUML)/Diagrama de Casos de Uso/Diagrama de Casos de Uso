@@ -1,0 +1,58 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+
+left to right direction
+
+actor "Usuário" as user
+
+rectangle Sistema {
+
+        (Autenticar-se) as UC_Auth
+        (Gerenciar Perfil) as UC_Perfil
+        (Gerenciar Endereço) as UC_Address
+        (Gerenciar Portfólio) as UC_Portfolio
+
+        (Gerenciar Postagens) as UC_Post
+        (Gerenciar Oportunidades) as UC_Oport
+    
+        (Seguir Usuário - UC-02) as UC_Follow
+        (Curtir Postagem - UC-01) as UC_Like
+        (Comentar em Postagem) as UC_Comment
+        (Mencionar Usuário) as UC_Mention
+        (Enviar Mensagem) as UC_Message
+
+        (Visualizar Notificações) as UC_Notif
+        (Buscar por Usuário - UC-03) as UC_Search
+        (Receber Recomendações) as UC_Rec
+        (Candidatar-se a Oportunidade) as UC_Apply
+}
+
+user -- UC_Auth
+user -- UC_Perfil
+user -- UC_Post
+user -- UC_Oport
+user -- UC_Follow
+user -- UC_Like
+user -- UC_Comment
+user -- UC_Message
+user -- UC_Notif
+user -- UC_Search
+user -- UC_Apply
+user -- UC_Rec
+user -- UC_Mention
+
+UC_Perfil ..> UC_Address : <<include>>
+UC_Perfil ..> UC_Portfolio : <<include>>
+UC_Apply ..> UC_Oport : <<include>>
+
+UC_Follow ..> UC_Notif : <<extend>>
+UC_Like ..> UC_Notif : <<extend>>
+UC_Comment ..> UC_Notif : <<extend>>
+UC_Message ..> UC_Notif : <<extend>>
+UC_Mention ..> UC_Notif : <<extend>>
+
+UC_Mention ..> UC_Post : <<extend>>
+UC_Mention ..> UC_Comment : <<extend>>
+
+@enduml

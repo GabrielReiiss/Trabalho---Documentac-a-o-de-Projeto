@@ -1,0 +1,52 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+skinparam nodesep 50
+skinparam ranksep 50
+
+top to bottom direction
+
+actor "Usuário" as User
+
+node "Infraestrutura de Cloud" as CloudHost {
+
+    package "Contêineres da Aplicação" {
+        node "Container: Frontend (Next.js)" as FeContainer {
+            artifact "app-next.js"
+        }
+        node "Container: API Gateway (Go)" as GwContainer {
+            artifact "api-gateway.bin"
+        }
+        node "Container: Backend API (Go)" as BeContainer {
+            artifact "backend-api.bin"
+        }
+        node "Container: Notificações (Go)" as NotifContainer {
+            artifact "notification-consumer.bin"
+        }
+        node "Container: Recomendações (Python)" as RecoContainer {
+            artifact "recommendation-app.py"
+        }
+    }
+
+    package "Contêineres de Dados" {
+        database "Container: PostgreSQL" as DBContainer
+        queue "Container: RabbitMQ" as MQContainer
+    }
+}
+
+User -down-> FeContainer : (HTTPS)
+
+FeContainer -down-> GwContainer : (HTTPS)
+
+GwContainer -down-> BeContainer : (Rede Docker)
+GwContainer -down-> RecoContainer : (Rede Docker)
+
+BeContainer -down-> DBContainer
+BeContainer -down-> MQContainer
+
+NotifContainer -left-> MQContainer
+NotifContainer -left-> DBContainer
+
+RecoContainer -down-> DBContainer
+
+@enduml

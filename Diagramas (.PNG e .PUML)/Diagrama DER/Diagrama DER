@@ -1,0 +1,183 @@
+@startuml
+!theme plain
+skinparam linetype ortho 
+skinparam nodesep 80
+skinparam ranksep 80
+skinparam shadowing false
+skinparam entity {
+    BorderColor #333
+    BackgroundColor #EEE
+    HeaderBackgroundColor #333
+    FontColor #FFF
+    ArrowColor #333
+}
+
+entity "User" as user {
+  + id [PK]
+  --
+  address_id [FK]
+  --
+  name
+  last_name
+  user_name
+  bio
+  email
+  phone
+  website
+  birth_date
+  profile_photo
+  role
+  link_instagram
+  link_facebook
+  link_youtube
+  link_portfolio
+  about
+  profession
+  skills [ARRAY/JSONB]
+  profile_banner
+  followingCount
+  followersCount
+  is_active
+  last_login
+  deactivated_at
+}
+
+entity "Address" as address {
+  + id [PK]
+  --
+  city
+  state
+  country
+  cep
+}
+
+entity "Post" as post {
+  + id [PK]
+  --
+  user_id [FK]
+  --
+  title
+  content
+  images [ARRAY/JSONB]
+  videos [ARRAY/JSONB]
+  post_date
+  status
+  post_type
+  views
+  comment_count
+  event_date_initial
+  event_date_final
+  event_time
+  location
+  likes
+  category
+}
+
+entity "Comment" as comment {
+  + id [PK]
+  --
+  user_id [FK]
+  post_id [FK]
+  reply_id [FK]
+  --
+  content
+}
+
+entity "Notifications" as notification {
+  + id [PK]
+  --
+  user_id [FK]
+  user_id_notificator [FK]
+  --
+  message
+  type
+  read
+  created_at
+}
+
+entity "Portfolio" as portfolio {
+  + id [PK]
+  --
+  user_id [FK]
+  --
+  title
+  image_url
+  description
+  skills [ARRAY/JSONB]
+  date
+}
+
+entity "OportunityEvent" as oportunity {
+  + id [PK]
+  --
+  publisher_user_id [FK]
+  --
+  title
+  description
+  closed_at
+  closed
+  link
+  location
+  application_dead_line
+  contact_info
+  applications_count
+  type
+  created_at
+}
+
+entity "ApplicationsOportunityEvent" as application {
+  + id [PK]
+  --
+  oportunity_event_id [FK]
+  applicant_user_id [FK]
+  --
+  cover_letter
+  curriculum
+  portfolio_link
+  created_at
+}
+
+
+entity "Follows" as follows {
+  + id_follower [PK, FK]
+  + id_followed [PK, FK]
+  --
+  follow_date
+  status
+  is_active
+}
+
+entity "Like" as like {
+  + user_id [PK, FK]
+  + post_id [PK, FK]
+  --
+  data_like
+  is_active
+}
+
+entity "MentionedPost" as mentioned {
+  + post_id [PK, FK]
+  + user_mentioned_id [PK, FK]
+}
+
+
+user "1" -- "0..1" address
+user "1" -- "0..N" post
+user "1" -- "0..N" portfolio
+user "1" -- "0..N" oportunity
+user "1" -- "0..N" comment
+user "1" -- "0..N" application
+
+post "1" -- "0..N" comment
+oportunity "1" -- "0..N" application
+
+comment "1" -- "0..N" comment
+
+notification "N" -- "1" user
+notification "N" -- "0..1" user
+
+(user, user) .. follows : "Follows"
+(user, post) .. like : "Like"
+(user, post) .. mentioned : "MentionedPost"
+
+@enduml

@@ -1,0 +1,48 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam nodesep 50
+skinparam ranksep 50
+
+top to bottom direction
+
+actor "Usuário" as User
+
+package "Cliente (Navegador)" {
+  [Frontend (Next.js)] as Frontend
+}
+
+package "Servidor" {
+    
+    package "Gateway de API" {
+        [API Gateway (Go)] as Gateway
+    }
+
+    package "Microsserviços" {
+        [Backend Principal (Go)] as Backend
+        [Serviço de Recomendação (Python)] as Reco
+        [Serviço de Notificações (Go)] as Notif
+    }
+
+    package "Persistência e Mensageria" {
+        database "Banco de Dados (PostgreSQL)" as DB
+        queue "Fila de Mensagens (RabbitMQ)" as MQ
+    }
+}
+
+User -down-> Frontend
+
+Frontend -down-> Gateway : (Requisições HTTP/GraphQL)
+
+Gateway -down-> Backend : (GraphQL)
+Gateway -down-> Reco : (REST)
+
+Backend -down-> DB
+Backend -down-> MQ
+
+Reco -down-> DB
+Notif -left-> DB
+MQ -right-> Notif
+
+@enduml

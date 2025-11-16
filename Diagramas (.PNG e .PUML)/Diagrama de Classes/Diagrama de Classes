@@ -1,0 +1,198 @@
+@startuml
+!theme plain
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+skinparam nodesep 50
+skinparam ranksep 70
+
+package "Domínio Principal" {
+    class User {
+        ID: UUID
+        Name: String
+        UserName: String
+        Email: String
+        Profession: String
+        Skills: String[]
+        FollowingCount: int
+        FollowersCount: int
+        AddressID: UUID
+    }
+
+    class Post {
+        ID: UUID
+        UserID: UUID
+        Title: String
+        Content: String
+        Status: PostStatus
+        PostType: PostType
+        Views: int
+        Likes: int
+    }
+
+    class Comment {
+        ID: UUID
+        User_ID: UUID
+        Post_ID: UUID
+        Reply_ID: UUID
+        Content: String
+    }
+    
+    class Address {
+        ID: UUID
+        City: String
+        State: String
+        Country: String
+    }
+}
+
+package "Portfólio" {
+    class Portfolio {
+        ID: UUID
+        UserID: UUID
+        Title: String
+        Description: String
+        Skills: String[]
+    }
+
+    class PortfolioMedia {
+        ID: UUID
+        PortfolioID: UUID
+        URL: String
+        Type: String
+    }
+}
+
+package "Oportunidades & Eventos" {
+    class OportunityEvent {
+        ID: UUID
+        PublisherUserID: UUID
+        Title: String
+        Description: String
+        Type: OportunityEventType
+        Closed: bool
+    }
+
+    class ApplicationsOportunityEvent {
+        ID: UUID
+        OportunityEventID: UUID
+        ApplicantUserID: UUID
+        CoverLetter: String
+        PortfolioLink: String
+    }
+}
+
+package "Relacionamentos (Tabelas-Pivô)" {
+    class Follows {
+        IDFollower: UUID
+        IDFollowed: UUID
+        Status: FollowStatus
+    }
+
+    class Like {
+        UserID: UUID
+        PostID: UUID
+        IsActive: bool
+    }
+
+    class MentionedPost {
+        PostID: UUID
+        UserMentionedID: UUID
+    }
+}
+
+package "Mensagens & Notificações" {
+    class Conversa {
+        ID: string
+        UnreadCount: int
+    }
+
+    class Mensagem {
+        ID: string
+        IDConversa: string
+        IDRemetente: string
+        Conteudo: string
+    }
+
+    class Notifications {
+        ID: UUID
+        UserID: UUID
+        UserIdNotificator: UUID
+        Message: String
+        Type: String
+        Read: bool
+    }
+}
+
+package "Enums" {
+    enum RoleType {
+        AdminRole
+        UserRole
+    }
+    
+    enum PostType {
+        PostTypeText
+        PostTypeImage
+        PostTypeVideo
+        PostTypePortfolio
+        PostTypeAd
+    }
+    
+    enum PostStatus {
+        PostStatusPublished
+        PostStatusDraft
+    }
+    
+    enum FollowStatus {
+        StatusPending
+        StatusAccepted
+        StatusRejected
+    }
+    
+    enum OportunityEventType {
+        JobOffer
+        Collaboration
+        ExibitionCall
+        AuditionCasting
+        ProjectGig
+        Residency
+        Comission
+        Internship
+        Scholarship
+        Competition
+        Workshop
+        Volunteer
+        Other
+    }
+}
+
+
+
+User "1" --> "0..1" Address
+User "1" --> "0..N" Post : "Publica"
+User "1" --> "0..N" Comment : "Escreve"
+Post "1" *--> "0..N" Comment : "Contém"
+Comment "1" --> "0..N" Comment : "Responde a"
+
+User "1" --> "0..N" Portfolio : "Possui"
+Portfolio "1" *--> "0..N" PortfolioMedia : "Contém"
+
+User "1" --> "0..N" OportunityEvent : "Publica"
+(User, OportunityEvent) .. ApplicationsOportunityEvent : "Aplica-se"
+
+Conversa "1" *--> "0..N" Mensagem : "Contém"
+Conversa "1" --> "2..N" User : "Participantes"
+Mensagem "N" --> "1" User : "Remetente"
+Notifications "N" --> "1" User : "Destinatário"
+
+(User, User) .. Follows : "Segue"
+(User, Post) .. Like : "Curte"
+(User, Post) .. MentionedPost : "Menciona"
+
+User ..> RoleType
+Post ..> PostType
+Post ..> PostStatus
+Follows ..> FollowStatus
+OportunityEvent ..> OportunityEventType
+
+@enduml

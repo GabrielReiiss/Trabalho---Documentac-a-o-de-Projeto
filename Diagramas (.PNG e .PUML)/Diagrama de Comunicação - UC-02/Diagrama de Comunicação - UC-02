@@ -1,0 +1,26 @@
+@startuml
+title Diagrama de Comunicação - Seguir Usuário (FollowsUseCase)
+
+actor Usuário
+participant "Frontend (Next.js)" as FE
+participant "API Gateway (Go)" as GW
+participant "Backend Principal (Go)" as BE
+database "Banco de Dados (PostgreSQL)" as DB
+queue "Fila (RabbitMQ)" as MQ
+participant "Serviço de Notificações (Go)" as NS
+
+Usuário -> FE : 1: clicaEmSeguir(userIdAlvo)
+FE -> GW : 2: POST /graphql (mutation: followUser)
+GW -> BE : 3: executa FollowsUseCase(userIdAlvo, userIdAtual)
+BE -> DB : 4: Verifica/Insere/Deleta em "follows"
+DB -> BE : 5: (Sucesso na transacao)
+BE -> GW : 6: (Sucesso, 200)
+GW -> FE : 7: (Sucesso, 200)
+FE -> Usuário : 8: (Atualiza UI - Botão "Seguindo")
+
+BE -> MQ : 9: publicaEvento("user_followed_event", {followerId, followedId})
+MQ -> NS : 10: consomeEvento("user_followed_event")
+NS -> DB : 11: Insere em "notifications" (userId=followedId, message=...)
+DB -> NS : 12: (Sucesso)
+
+@enduml

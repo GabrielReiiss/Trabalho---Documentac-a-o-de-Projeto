@@ -1,0 +1,73 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+skinparam shadowing false
+skinparam participant {
+    BorderColor #333
+    BackgroundColor #EEE
+    ActorBorderColor #333
+}
+skinparam database {
+    BorderColor #333
+    BackgroundColor #EEE
+}
+skinparam queue {
+    BorderColor #333
+    BackgroundColor #F8F8F8
+}
+
+title "Diagrama de Sequencia - Curtir Postagem (LikeUseCase)"
+
+actor "Usuario" as user
+participant "Frontend (Next.js)" as fe
+participant "API Gateway (Go)" as gw
+participant "Backend Principal (Go)" as be
+database "Banco de Dados (PostgreSQL)" as db
+queue "Fila (RabbitMQ)" as mq
+participant "Servico de Notificacoes (Go)" as notif
+
+group Fluxo Sincrono (Requisicao do Usuario)
+    user -> fe: clicaEmCurtir(postId)
+    activate fe
+
+    fe -> gw: POST /graphql (mutation: likePost)
+    activate gw
+
+    gw -> be: executa LikeUseCase(postId, userId)
+    activate be
+
+    be -> db: Verifica/Insere/Deleta em "like"\n(userId, postId)
+    activate db
+    db --> be: (Sucesso na transacao)
+    deactivate db
+
+    be --> gw: (Sucesso, 200)
+    deactivate be
+
+    gw --> fe: (Sucesso, 200)
+    deactivate gw
+
+    fe --> user: (Atualiza UI - Curtida aplicada)
+    deactivate fe
+end
+
+group Fluxo Assincrono (Notificacao)
+    be -> mq: publicaEvento("user_like_event", {postId, userId})
+
+    mq -> notif: consomeEvento("user_like_event")
+    activate notif
+
+    notif -> db: Busca dono do post (SELECT user_id FROM posts WHERE id=postId)
+    activate db
+    db --> notif: (Retorna postOwnerId)
+    deactivate db
+
+    notif -> db: Insere em "notifications" (userId=postOwnerId, message=...)
+    activate db
+    db --> notif: (Sucesso)
+    deactivate db
+    
+    deactivate notif
+end
+
+@enduml

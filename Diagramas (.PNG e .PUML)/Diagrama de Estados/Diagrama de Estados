@@ -1,0 +1,52 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+skinparam shadowing false
+skinparam state {
+    BorderColor #333
+    BackgroundColor #EEE
+    ArrowColor #333
+    FontColor #333
+}
+top to bottom direction
+
+title "Diagrama de Estados"
+
+state "Nao_Autenticado" as Deslogado
+state "Conta_Desativada" as Desativado
+
+state "Autenticado" as Logado {
+    state "Visualizando Feed" as Feed
+    state "Visualizando Perfil" as Perfil
+    state "Visualizando Post" as Post
+    state "Visualizando Oportunidades" as Oportunidades
+    
+    [*] --> Feed : (Estado inicial ao logar)
+    
+    Feed --> Perfil : Clicar em Perfil
+    Perfil --> Feed : Voltar ao Feed
+
+    Feed --> Post : Clica em Post
+    Post --> Feed : Fechar Post
+
+    Feed --> Oportunidades : Clicar em Oportunidades
+    Oportunidades --> Feed : Voltar ao Feed
+
+    Feed : curtirPost
+    Feed : seguirUsuario
+    Feed : buscar
+    Feed : criarPost
+}
+
+[*] --> Deslogado : (Inicio)
+
+Deslogado --> Logado : Logar (sucesso)
+Deslogado --> Logado : Cadastrar (sucesso)
+Deslogado --> Deslogado : Logar (falha)
+
+Logado --> Deslogado : Deslogar
+Logado --> Desativado : Desativar Conta
+
+Desativado --> Deslogado : (Logout automatico)
+
+@enduml

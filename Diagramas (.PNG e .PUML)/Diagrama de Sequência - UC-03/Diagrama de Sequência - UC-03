@@ -1,0 +1,48 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+skinparam shadowing false
+skinparam participant {
+    BorderColor #333
+    BackgroundColor #EEE
+    ActorBorderColor #333
+}
+skinparam database {
+    BorderColor #333
+    BackgroundColor #EEE
+}
+
+title "Diagrama de Sequencia - Buscar por Usuario (SearchUseCase)"
+
+actor "Usuario" as user
+participant "Frontend (Next.js)" as fe
+participant "API Gateway (Go)" as gw
+participant "Backend Principal (Go)" as be
+database "Banco de Dados (PostgreSQL)" as db
+
+group Fluxo Sincrono (Requisicao de Busca)
+    user -> fe: digitaTermoBusca("artista")
+    activate fe
+
+    fe -> gw: POST /graphql (query: search, term: "artista")
+    activate gw
+
+    gw -> be: executa SearchUseCase("artista")
+    activate be
+
+    be -> db: SELECT * FROM "users"\nWHERE user_name LIKE '%artista%' OR name LIKE '%artista%'
+    activate db
+    db --> be: (Retorna listaDeUsuarios)
+    deactivate db
+
+    be --> gw: (Sucesso, 200, listaDeUsuarios)
+    deactivate be
+
+    gw --> fe: (Sucesso, 200, listaDeUsuarios)
+    deactivate gw
+
+    fe --> user: (Exibe lista de resultados)
+    deactivate fe
+end
+
+@enduml
